@@ -1,0 +1,88 @@
+---
+title: "Bonanza Creek Snowshoe Hare Report"
+author: "Thomas Lenihan"
+date: "11/6/2021"
+output: 
+  html_document: 
+    toc: yes
+    theme: paper
+    number_sections: yes
+    code_folding: hide
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(ggbeeswarm)
+```
+
+```{r, include = FALSE, message = FALSE, warning = FALSE}
+
+snowshoehares <- read_csv(here("data", "bonanza_hares.csv"))
+```
+
+**Introduction: **
+#need to include 4-5 sent intro here
+
+**Data and analyses**
+
+#3-4 sent section desc data (inc citations and credit) and anaylsis overview, stats, methods, tools used
+
+**Juvenile hare initial investigation**
+
+#brief intro here
+
+***Annual juvenile hare trap counts***
+```{r}
+snowshoehares_ymd <- snowshoehares %>% 
+  mutate(date = mdy(date)) %>% # create date class
+  mutate(year = year(date)) # create a column with only year
+  
+snowshoehare_trap_counts <- snowshoehares_ymd %>%  #new df for hare trap counts
+  filter(age == "j") %>% 
+  group_by(year) %>% 
+  summarize(trapcount_yearly_j = n())
+  
+ggplot(data = snowshoehare_trap_counts,
+       aes(x = year,
+       y = trapcount_yearly_j))+
+  geom_col(fill = "orange3", color = "black")+
+  labs(x = "Year",
+       y = "Juvenile Hares")+
+  theme(plot.title = element_text(size =12, hjust = 0.5))+
+  theme_minimal()
+
+```
+**Figure 2. Annual Counts of Trapped Juvenile Hares, 1998-2012.** Yearly totals of juvenile snowshoe hares captured at the Bonanza Creek LTER are shown above. No age data was taken in 1998, accounting for the lack of juvenile observations during first year of the study. Additionally, no juvenile hares were observed in 2002 or 2009. 
+
+#3-4 sentence explanation of the graph above
+
+***Juvenile hare weights by sex and site***
+
+```{r}
+juvenile_hare_weights <- snowshoehares_ymd %>% 
+  filter(age == "j", sex == "m" | sex == "f") %>% 
+  group_by(sex, grid) %>%
+  mutate(sex_full = case_when(
+    sex == "m" ~ "male",
+    sex == "f" ~ "female"))#remove the NA??? HOW
+  
+
+ggplot(data = juvenile_hare_weights,
+       aes(x = grid,
+       y = weight, color = sex_full)) +
+  geom_beeswarm(cex = 2, priority = "density")+
+  #scale_color_brewer(palette = "Set3")+
+  labs(x = "Study Site",
+       y = "Weight (g)", 
+       color = "Sex")+
+  theme_minimal()
+  
+```
+
+***Juvenile male and female snowshoe hare weights***
+
