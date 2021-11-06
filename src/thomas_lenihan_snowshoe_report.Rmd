@@ -5,19 +5,20 @@ date: "11/6/2021"
 output: 
   html_document: 
     toc: yes
-    theme: paper
+    theme: readable
     number_sections: yes
     code_folding: hide
-    highlight: textmate
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(here)
 library(tidyverse)
+library(janitor)
 library(lubridate)
 library(ggplot2)
 library(ggbeeswarm)
+library(kableExtra)
 ```
 
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
@@ -25,18 +26,20 @@ library(ggbeeswarm)
 snowshoehares <- read_csv(here("data", "bonanza_hares.csv"))
 ```
 
-**Introduction: **
-#need to include 4-5 sent intro here
+##Introduction:
 
-**Data and analyses**
+need to include 4-5 sent intro here
 
-#3-4 sent section desc data (inc citations and credit) and anaylsis overview, stats, methods, tools used
+##Data and analyses
 
-**Juvenile hare initial investigation**
+3-4 sent section desc data (inc citations and credit) and anaylsis overview, stats, methods, tools used
 
-#brief intro here
+##Juvenile hare initial investigation
 
-***Annual juvenile hare trap counts***
+brief intro here
+
+###Annual juvenile hare trap counts
+
 ```{r}
 snowshoehares_ymd <- snowshoehares %>% 
   mutate(date = mdy(date)) %>% # create date class
@@ -57,26 +60,26 @@ ggplot(data = snowshoehare_trap_counts,
   theme_minimal()
 
 ```
-**Figure 2. Annual Counts of Trapped Juvenile Hares, 1998-2012.** Yearly totals of juvenile snowshoe hares captured at the Bonanza Creek LTER are shown above. No age data was taken in 1998, accounting for the lack of juvenile observations during first year of the study. Additionally, no juvenile hares were observed in 2002 or 2009. 
 
-#3-4 sentence explanation of the graph above
+**Figure 2. Annual Counts of Trapped Juvenile Hares, 1998-2012.** Yearly totals of juvenile snowshoe hares captured at the Bonanza Creek LTER are shown above. No age data was taken in 1998, accounting for the lack of juvenile observations during first year of the study. Additionally, no juvenile hares were observed in 2002 or 2009.
 
-***Juvenile hare weights by sex and site***
+3-4 sentence explanation of the graph above
+
+###Juvenile hare weights by sex and site
 
 ```{r}
 juvenile_hare_weights <- snowshoehares_ymd %>% 
-  filter(age == "j", sex == "m" | sex == "f") %>% 
+  filter(age == "j") %>% 
   group_by(sex, grid) %>%
   mutate(sex_full = case_when(
     sex == "m" ~ "male",
-    sex == "f" ~ "female"))#remove the NA??? HOW
+    sex == "f" ~ "female"))
   
 
 ggplot(data = juvenile_hare_weights,
        aes(x = grid,
        y = weight, color = sex_full)) +
   geom_beeswarm(cex = 2, priority = "density")+
-  #scale_color_brewer(palette = "Set3")+
   labs(x = "Study Site",
        y = "Weight (g)", 
        color = "Sex")+
@@ -84,5 +87,58 @@ ggplot(data = juvenile_hare_weights,
   
 ```
 
-***Juvenile male and female snowshoe hare weights***
+**Figure 2. Distribution of juvenile hare weights by study size and sex.** CAPTION
+
+###Juvenile male and female snowshoe hare weights
+
+**Table 1. Summary statistics of juvenile snowshoe hare weights (g) by sex.** CAPTION
+```{r}
+juvenile_hare_weights_stats <- juvenile_hare_weights %>% #create a new data frame which will become the stats table
+  group_by(sex_full) %>% #organize by site and sex
+  summarize(mean_mass_g = mean(weight, na.rm = TRUE),
+            median = median(weight, na.rm = TRUE),
+            sd = sd(weight, na.rm = TRUE),
+            sample_size = n()) #create summary statistics 
+
+juvenile_hare_weights_stats %>% 
+ #create a table to show summary stats using kableExtra
+   kable(col.names = c("Sex", 
+                      "Mean weight (g)", 
+                      "Median weight (g)",
+                      "Standard Deviation (g)",
+                      "Sample size (n)")) %>% 
+  kable_styling(full_width = FALSE)
+```
+
+```{r}
+juvenile_hare_weights_m <- juvenile_hare_weights %>% #male juveniles only
+  filter(sex == "m")
+
+juvenile_hare_weights_f <- juvenile_hare_weights %>% #female juveniles only
+  filter(sex == "f")
+
+ggplot(data = juvenile_hare_weights_m, aes(x = weight)) + #exploratory data vis for males
+  geom_histogram(bins = 15) +
+  facet_wrap(~grid)
+
+ggplot(data = juvenile_hare_weights_m, aes(sample = weight)) +
+  geom_qq() +
+  facet_wrap(~grid)
+
+ggplot(data = juvenile_hare_weights_f, aes(x = weight)) + #exploratory data vis for females
+  geom_histogram(bins = 15) +
+  facet_wrap(~grid)
+
+ggplot(data = juvenile_hare_weights_f, aes(sample = weight)) +
+  geom_qq() +
+  facet_wrap(~grid)
+
+ggplot(data = juvenile_hare_weights, aes(x = weight)) + #exploratory data vis for all juveniles
+  geom_histogram(bins = 15) +
+  facet_wrap(~grid)
+
+ggplot(data = juvenile_hare_weights, aes(sample = weight)) +
+  geom_qq() +
+  facet_wrap(~grid)
+```
 
