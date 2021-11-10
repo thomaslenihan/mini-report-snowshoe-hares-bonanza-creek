@@ -1,0 +1,35 @@
+---
+title: "weird histogram plot"
+author: "Thomas Lenihan"
+date: "11/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+juvenile_hare_weights <- snowshoehares_ymd %>% 
+  filter(age == "j") %>% 
+  filter( sex == "f" | sex == "m") %>% 
+  filter(weight > 0) %>% 
+  group_by(sex, grid) %>% #filter by sex and site
+  mutate(sex_full = case_when(
+    sex == "m" ~ "male",
+    sex == "f" ~ "female")) #create full names for the plot key 
+
+ggplot(data = juvenile_hare_weights, #PROBLEMS-- go to OH with charlie
+       aes(x = weight, color = sex_full, fill = sex_full))+
+  geom_histogram(alpha = 0.5, 
+                 bins = 15, 
+                 position = "identity")+
+  scale_fill_manual(values = c("red", "blue"))+
+  facet_wrap(~grid)+ 
+  labs(x = "Weight (g)",
+       y = "Number of Individuals"
+       ) +
+  theme_minimal()
+```
+
